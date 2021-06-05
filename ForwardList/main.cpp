@@ -1,6 +1,10 @@
 ﻿#include<iostream>
 using namespace std;
+using std::cout;
+using std::endl;
+using std::cin;
 #define tab "\t"
+#define delimiter "---------------------------"
 //#include <initializer_list>
 
 class ForwardList;
@@ -12,7 +16,7 @@ class Element
 	Element* pNext;
 	static int count;
 public:
-	Element* get_pNext()const
+	const Element* get_pNext()const
 	{
 		return pNext;
 	}
@@ -41,10 +45,60 @@ public:
 		cout << "EDestructor:\t" << this << endl;
 	}
 	friend class ForwardList;
+	friend ForwardList operator+(const ForwardList& left, const ForwardList& right);
+	friend class Iterator;
 };
-
-
 int Element::count = 0;
+
+class Iterator
+{
+	Element* Temp;
+	//Этот класс просто оборачивает указатель на Element,что позваоляет нам перегружать операции для указателя на элемент
+public:
+	Iterator(Element* Temp = nullptr)
+	{
+		this->Temp = Temp;
+		cout << "ITConstruct:\t" << this << endl;
+	}
+	Iterator(const Iterator& other)
+	{
+		this->Temp = other.Temp;
+		cout << "ITCopyconstructor:\t" << this << endl;
+	}
+	~Iterator()
+	{
+		cout << "ITDestructor:\t" << this << endl;
+	}
+	Iterator& operator++()//prefix increment
+	{
+		this->Temp = Temp->pNext;
+		return *this;
+	}
+	Iterator& operator++(int)//posfix increment
+	{
+		Iterator old = *this;
+		Temp = Temp->pNext;
+		return old;
+	}
+
+	bool operator==(const Iterator& other)const
+	{
+		return this->Temp == other.Temp;
+	}
+	bool operator!=(const Iterator& other)const
+	{
+		return this->Temp != other.Temp;
+	}
+	const int& operator*()const
+	{
+		return Temp->Data;
+	}
+	int& operator*()
+	{
+		return Temp->Data;
+	}
+
+};
 
 class ForwardList :public initializer_list<int>
 {
@@ -63,6 +117,23 @@ public:
 	void set_Head(Element* Head)
 	{
 		this->Head = Head;
+	}
+	Iterator begin()
+	{
+		return Head;
+	}
+	const Iterator begin()const
+	{
+		return Head;
+	}
+	Iterator end()
+	{
+		return nullptr;
+	}
+
+	Iterator end()const
+	{
+		return nullptr;
 	}
 	ForwardList()
 	{
@@ -83,18 +154,19 @@ public:
 		cout << "CopyListConstructor:" << this << endl;
 	}
 
-	ForwardList(const initializer_list<int>& Data)
+	ForwardList(const initializer_list<int>& il) :ForwardList()//Вызов конструктора по умолчанию
 	{
 		this->Head = 0;
 		this->size = 0;
-		/*for (const int* Iterator = Data.begin(); Iterator != Data.end(); Iterator++)
+		cout << typeid(il.begin()).name() << endl;
+		for (const int* IT = il.begin(); IT != il.end(); IT++)
 		{
-			this->push_back(*Iterator);
-		}*/
-		for (auto i : Data)
+			this->push_back(*IT);
+		}
+		/*for (int i : il)
 		{
 			this->push_back(i);
-		}
+		}*/
 	}
 
 	//          MoveConstructor
@@ -141,11 +213,12 @@ public:
 	//             MoveMethod
 	ForwardList& operator=(ForwardList&& other)
 	{
-		if (this == &other)return *this;
-		this->Clear();
+		while (Head)pop_front();// удаляем голову пока HEad не 0 и для this вызывается деструктор
+		//this->Clear();
 		this->Head = other.Head;
 		this->size = other.size;
 		other.Head = nullptr;
+		cout << "MoveAssignment:\t" << this << endl;
 		return *this;
 	}
 	///////////////////////////////////////////////
@@ -328,7 +401,7 @@ public:
 		//	Temp = Temp->pNext;// Переход на следующий элемент
 		//}
 
-		for (Element* Temp = Head; Temp; Temp = Temp->pNext)
+		for (Element* Temp = Head; Temp; /*Temp++*/Temp = Temp->pNext)
 		{
 			cout << Temp << tab << Temp->Data << tab << Temp->pNext << endl;
 		}
@@ -336,30 +409,47 @@ public:
 		cout << "Колчество элементов в списке: " << size << endl;
 		cout << "Общее количество элементов: " << Element::count << endl;
 	}
-
-
 };
+
+
 
 ForwardList operator+(const ForwardList& left, const ForwardList& right)
 {
-	cout << "LIST_left" << endl;
-	ForwardList list = left; //Элементы скопируются при создании листа
-	Element* Temp = left.get_Head();
-	cout << "LIST_right" << endl;
+	//cout << "LIST_left" << endl;
+	//ForwardList list = left; //Элементы скопируются при создании листа
+	//Element* Temp =  right.get_Head();
+	//cout << "LIST_right" << endl;	
+	//while (Temp)
+	//{
+	//	list.push_back(Temp->get_Data());// Каждый элемент списка other добaвляем в конец нашего списка
+	//	Temp = Temp->get_pNext();     //Переход на следующий элемент
+	//}
+	//return list;
 
-	Temp = right.get_Head();
-	while (Temp)
+	/*ForwardList cat = left;
+	for (Element* Temp = right.get_Head(); Temp; Temp = Temp->pNext)
 	{
-		list.push_back(Temp->get_Data());// Каждый элемент списка other добaвляем в конец нашего списка
-		Temp = Temp->get_pNext();     //Переход на следующий элемент
+		cat.push_back(Temp->Data);
+	}*/
+
+	ForwardList cat = left;
+	for (Iterator it = right.begin(); it != right.end(); it++)
+	{
+		cat.push_back(*it);
 	}
-	return list;
+	return cat;
 }
 
 
+#define BASE_CHEK
+//#define COPY_METHODS_CHEK
+//#define OPERATOR_PLUS_CHEK
+//#define RANGE_BASED_ARRAY
+#define RANGE_BASED_LIST
 void main()
 {
 	setlocale(LC_ALL, "rus");
+#ifdef COPY_METHODS_CHEK
 	int n;
 	cout << "Введите колчество элементов списка: "; cin >> n;
 	ForwardList list;
@@ -392,14 +482,53 @@ void main()
 	//ForwardList list3;
 	//list3 = list2;
 	//list3 = list;
-	//list3.print();
+	//list3.print();  
+#endif // COPY_METHODS_CHEK
 
-	cout << "------------------------------------" << endl;
-	ForwardList list4 = list + list;
-	list4.print();
+#ifdef OPERATOR_PLUS_CHEK
+	cout << delimiter << endl;
+	ForwardList list1{ 3,5,8,13,21 };
+	ForwardList list2{ 34,55,89 };
+
+	cout << delimiter << endl;
+	ForwardList list3;
+	list3 = list1 + list2;
+	cout << delimiter << endl;
+
+	list3.print();
+#endif // OPERATOR_PLUS_CHEK
 
 
-	ForwardList list_arr{ 1,2,3,4,999 };
-	list_arr = { 99,4,3,2,1 };
-	list_arr.print();
+#ifdef RANGE_BASED_ARRAY
+	int arr[] = { 3,5,8,13,21 };
+	//	for (int i = 0; i < sizeof(arr) / sizeof(int); i++)\
+	////sizeof(arr) / sizeof(int)
+	////узнаем сколько элементов / на размер 1 элемента
+	//	{
+	//		cout << arr[i] << tab;
+	//	}
+	//	cout << endl;
+
+	//Rage-base for - Цикл for для контейнера(аналог foreach)
+	for (int i : arr)
+	{
+		cout << i;
+	}
+	cout << endl;
+#endif // RANGE_BASED_ARRAY
+
+
+	ForwardList list{ 3,5,8,13,21 };
+	for (int i : list)
+	{
+		cout << i << tab;
+	}
+	cout << endl;
+
+	for (Iterator it = list.begin(); it != list.end(); it++)
+	{
+		//it != list.end() неявное преобразование nullptr в Iterator и создается временный безимяный объект
+		cout << *it << tab;
+	}
+	cout << endl;
 }
