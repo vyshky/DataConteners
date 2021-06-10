@@ -8,6 +8,7 @@ using std::cin;
 //#include <initializer_list>
 
 class ForwardList;
+class Iterator;
 ForwardList operator+(const ForwardList& left, const ForwardList& right);
 
 class Element
@@ -45,8 +46,8 @@ public:
 		cout << "EDestructor:\t" << this << endl;
 	}
 	friend class ForwardList;
-	friend ForwardList operator+(const ForwardList& left, const ForwardList& right);
 	friend class Iterator;
+	friend ForwardList operator+(const ForwardList& left, const ForwardList& right);
 };
 int Element::count = 0;
 
@@ -55,8 +56,9 @@ class Iterator
 	Element* Temp;
 	//Этот класс просто оборачивает указатель на Element,что позваоляет нам перегружать операции для указателя на элемент
 public:
+		
 	Iterator(Element* Temp = nullptr)
-	{
+	{		
 		this->Temp = Temp;
 		cout << "ITConstruct:\t" << this << endl;
 	}
@@ -77,7 +79,7 @@ public:
 	Iterator& operator++(int)//posfix increment
 	{
 		Iterator old = *this;
-		Temp = Temp->pNext;
+		this->Temp = Temp->pNext;
 		return old;
 	}
 
@@ -100,12 +102,11 @@ public:
 
 };
 
-class ForwardList :public initializer_list<int>
+class ForwardList
 {
 	Element* Head;// Адресс начального элемента
 	unsigned int size;//Cодержит размер списка	
 public:
-
 	Element* get_Head()const
 	{
 		return Head;
@@ -120,19 +121,24 @@ public:
 	}
 	Iterator begin()
 	{
+		cout << this << tab;
 		return Head;
 	}
 	const Iterator begin()const
 	{
+		cout << this << tab;
 		return Head;
 	}
+
 	Iterator end()
 	{
+		cout << this << tab;
 		return nullptr;
 	}
 
-	Iterator end()const
+	const Iterator end()const
 	{
+		cout << this << tab;
 		return nullptr;
 	}
 	ForwardList()
@@ -158,7 +164,7 @@ public:
 	{
 		this->Head = 0;
 		this->size = 0;
-		cout << typeid(il.begin()).name() << endl;
+		cout << typeid(il.begin()).name() << endl;		
 		for (const int* IT = il.begin(); IT != il.end(); IT++)
 		{
 			this->push_back(*IT);
@@ -518,17 +524,39 @@ void main()
 #endif // RANGE_BASED_ARRAY
 
 
+
 	ForwardList list{ 3,5,8,13,21 };
-	for (int i : list)
+	cout << "----------------------------------------------------" << endl;
+
+	cout << endl << "FORACHE" << endl << endl;
+	for (int& i : list)
 	{
 		cout << i << tab;
 	}
-	cout << endl;
 
-	for (Iterator it = list.begin(); it != list.end(); it++)
+	cout << endl << "FOR" << endl << endl;
+	for (Iterator i = list.begin(), j = list.end(); i != j; ++i)
 	{
-		//it != list.end() неявное преобразование nullptr в Iterator и создается временный безимяный объект
-		cout << *it << tab;
+		int& it = *i;
+		cout << it << tab;
 	}
 	cout << endl;
+
+
+
+
+
+
+	/*int x = 10;
+	int* i = &x;
+	int& it = *i;
+	cout << &it << tab << &i << tab << &x << endl;*/
+
+	
+
+	//for (Iterator it = list.begin(); it != list.end(); it++)
+	//{	//it != list.end() неявное преобразование nullptr в Iterator и создается временный безимяный объект
+	//	cout << *it << tab;
+	//}
+	//cout << typeid(list.begin()).name() << endl;
 }
