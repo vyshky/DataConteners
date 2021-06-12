@@ -8,9 +8,7 @@ class List
 	////////////////////////////////////////////////////////////////////////
 	unsigned int size;
 
-public:
-	class Iterator;
-	class Element;
+public:	
 	class Element
 	{
 		int Data;
